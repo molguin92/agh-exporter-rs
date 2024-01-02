@@ -3,28 +3,30 @@ use log::LevelFilter;
 use reqwest::Url;
 use simple_logger::SimpleLogger;
 use std::time::Duration;
+
 /// Adguard Home (AGH) Prometheus exporter.
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Base AGH API URL. Note the trailing slash!
-    #[arg(short = 'a', long, default_value_t = Url::parse("http://localhost:80/control/").unwrap())]
+    #[arg(short = 'a', long, env, default_value_t = Url::parse("http://localhost:80/control/").unwrap())]
     agh_host: Url,
 
     /// Address to bind to and serve metrics from, including metrics URL
-    #[arg(short = 's', long, default_value_t = Url::parse("http://0.0.0.0:9100/metrics").unwrap())]
+    #[arg(short = 's', long, env = "AGH_SERVE_ADDR", default_value_t = Url::parse("http://0.0.0.0:9100/metrics").unwrap())]
     serve_addr: Url,
 
     /// AGH username.
-    #[arg(short = 'u', long)]
+    #[arg(short = 'u', env, long)]
     agh_username: Option<String>,
 
     /// AGH password.
-    #[arg(short = 'p', long)]
+    #[arg(short = 'p', env, long)]
     agh_password: Option<String>,
 
     /// Scrape interval, in seconds.
-    #[arg(short = 'i', long, default_value_t = 5)]
+    /// Should ideally be less than half the Prometheus server scrape interval.
+    #[arg(short = 'i', long, env = "AGH_SCRAPE_INTERVAL", default_value_t = 5)]
     scrape_interval: u64,
 }
 
