@@ -1,8 +1,34 @@
 # agh-exporter-rs
 
-A small HTTP server exporting AdGuard Home metrics for consumption in Prometheus.
+A small HTTP server exporting AdGuard Home metrics for consumption in Prometheus, built on top of [`tokio-rs`](https://tokio.rs/), [`serde-rs`](https://serde.rs/), [`reqwest`](https://docs.rs/reqwest/latest/reqwest/), and [`axum`](https://docs.rs/axum/latest/axum/).
+Exported metrics are named identically to the output of the AdGuard Home metrics; for details, see the [AdGuard Home openapi specification.](https://github.com/AdguardTeam/AdGuardHome/tree/master/openapi)
 
-Built on top of [`tokio-rs`](https://tokio.rs/), [`serde-rs`](https://serde.rs/), [`reqwest`](https://docs.rs/reqwest/latest/reqwest/), and [`axum`](https://docs.rs/axum/latest/axum/).
+Example metrics:
+```bash
+$ curl http://agh-exporter:9100/metrics
+num_dns_queries 47578
+num_blocked_filtering 8447
+num_replaced_safebrowsing 0
+num_replaced_safesearch 0
+num_replaced_parental 0
+avg_processing_time 0.031464
+top_clients{client = "192.168.1.28"} 10321
+top_clients{client = "192.168.1.32"} 6308
+top_clients{client = "192.168.1.16"} 6266
+...
+top_upstreams_responses{upstream = "1.1.1.1:53"} 15264
+top_upstreams_responses{upstream = "1.0.0.1:53"} 14659
+top_upstreams_avg_time{upstream = "1.1.1.1:53"} 0.0497817546514675
+top_upstreams_avg_time{upstream = "1.0.0.1:53"} 0.04927965318234532
+top_queried_domains{domain = "www.baidu.com"} 4120
+top_queried_domains{domain = "raw.githubusercontent.com"} 3064
+top_queried_domains{domain = "1.0.168.192.in-addr.arpa"} 2181
+...
+top_blocked_domains{domain = "os-12-5-alpha.logs.roku.com"} 2353
+top_blocked_domains{domain = "scribe.logs.roku.com"} 2208
+top_blocked_domains{domain = "dit.whatsapp.net"} 862
+...
+```
 
 ## Installing and running the crate
 
