@@ -1,10 +1,10 @@
 [changelog]
-header = ""
+header = "# Changelog\n\n"
 body = """
 {% if version %}\
-    {{ version | trim_start_matches(pat="v") }}\
+    ## {{ version | trim_start_matches(pat="v") }}\
 {% else %}\
-    Unreleased\
+    ## Unreleased\
 {% endif %}\
 {% for commit in commits %}
   - {{ commit.author.timestamp | date }} {{ commit.message | split(pat="\n") | first }}\
