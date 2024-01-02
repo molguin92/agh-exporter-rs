@@ -1,3 +1,7 @@
+[![.github/workflows/ghcr_latest.yml](https://github.com/molguin92/agh-exporter-rs/actions/workflows/ghcr_latest.yml/badge.svg)](https://github.com/molguin92/agh-exporter-rs/actions/workflows/ghcr_latest.yml)
+[![.github/workflows/ghcr_tagged.yml](https://github.com/molguin92/agh-exporter-rs/actions/workflows/ghcr_tagged.yml/badge.svg)](https://github.com/molguin92/agh-exporter-rs/actions/workflows/ghcr_tagged.yml)
+
+
 # agh-exporter-rs
 
 A small HTTP server exporting AdGuard Home metrics for consumption in Prometheus, built on top of [`tokio-rs`](https://tokio.rs/), [`serde-rs`](https://serde.rs/), [`reqwest`](https://docs.rs/reqwest/latest/reqwest/), and [`axum`](https://docs.rs/axum/latest/axum/).
