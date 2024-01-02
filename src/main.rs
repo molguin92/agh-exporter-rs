@@ -3,10 +3,6 @@ use log::LevelFilter;
 use reqwest::Url;
 use simple_logger::SimpleLogger;
 use std::time::Duration;
-
-mod scrape;
-mod server;
-
 /// Adguard Home (AGH) Prometheus exporter.
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -51,11 +47,11 @@ async fn main() {
             None => unreachable!(),
         },
         Err(e) => {
-            panic!("Cannot bind to requested address: {e}")
+            panic!("Cannot bind to requested address: {}", e)
         }
     };
 
-    let rx = scrape::start_scrape_loop(
+    let rx = agh_exporter_rs::scrape::start_scrape_loop(
         args.agh_host,
         args.agh_username,
         args.agh_password,
@@ -63,7 +59,7 @@ async fn main() {
     )
     .unwrap();
 
-    server::serve(sock_addr, rx, Some(metrics_path.into()))
+    agh_exporter_rs::server::serve(sock_addr, rx, Some(metrics_path.into()))
         .await
         .unwrap();
 }

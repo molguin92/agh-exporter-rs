@@ -56,7 +56,7 @@ pub struct AghApiStatistics {
     top_blocked_domains: Vec<HashMap<String, NestedDomainCount>>,
 }
 
-pub(crate) fn start_scrape_loop(
+pub fn start_scrape_loop(
     agh_base_url: Url,
     user: Option<String>,
     pwd: Option<String>,
