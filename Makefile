@@ -7,8 +7,3 @@ build-docker: Dockerfile
 .PHONY: push-docker
 push-docker: build-docker
 	docker push $(DOCKER_IMG_NAME)
-
-.PHONY: cargo-release
-cargo-release:
-	cargo install cargo-release git-cliff
-	cargo release
