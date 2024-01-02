@@ -23,4 +23,4 @@ $ cargo build
 ## License
 
 Licensed under an Apache 2.0 License.
-See [LICENSE](LICENSE) for details.
+See [LICENSE](LICENSE.md) for details.
