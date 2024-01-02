@@ -1,0 +1,15 @@
+on:
+  push:
+    # Pattern matched against refs/tags
+    tags:
+      - '*'           # Push events to every tag not containing /
+jobs:
+  publish-docker:
+    runs-on: ubuntu-latest
+    name: Publish Docker image on ghcr.io (tagged release)
+    steps:
+    - name: Build and Push Container to ghcr.io
+      uses: matootie/github-docker@v3.0.0
+      with:
+        accessToken: ${{ github.token }}
+        tag: ${{ github.ref_name }}
