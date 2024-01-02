@@ -1,0 +1,11 @@
+on: ["push"]
+jobs:
+  publish-docker:
+    runs-on: ubuntu-latest
+    name: Publish Docker image on ghcr.io (latest release)
+    steps:
+    - name: Build and Push Container to ghcr.io
+      uses: matootie/github-docker@v3.0.0
+      with:
+        accessToken: ${{ github.token }}
+        tag: latest
