@@ -1,0 +1,6 @@
+FROM rust:slim-bookworm
+LABEL org.opencontainers.image.source https://github.com/molguin92/agh-exporter-rs
+
+RUN apt-get update && apt-get install -y libc-dev pkg-config libssl-dev openssl
+RUN cargo install agh-exporter-rs
+ENTRYPOINT ["agh-exporter-rs"]
