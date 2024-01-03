@@ -11,6 +11,6 @@ docker-version-%: Dockerfile
 
 .PHONY: release-bump-%
 release-bump-%:
-	cargo release $* --execute --no-confirm --no-push --no-publish
-	TAG := $(shell git tag --points-at HEAD)
+	cargo release $* --execute --no-confirm
+	$(eval TAG:=$(shell git tag --points-at HEAD))
 	$(MAKE) docker-version-$(TAG)
