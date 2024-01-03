@@ -1,9 +1,18 @@
-Changelog
-0.1.2
-- 2024-01-02 configuring cliff.toml
+# Changelog
+
+## 0.1.2
+- 2024-01-03 Makefile targets to build and publish
+- 2024-01-03 Builds
+- 2024-01-03 trying to fix docker push actions
+- 2024-01-02 update workflows
+- 2024-01-02 Update README with example metrics
+- 2024-01-02 Switching to official Docker actions
+- 2024-01-02 CI: GitHub action to publish latest release
+- 2024-01-02 CI: GitHub action to publish tagged releases
+- 2024-01-02 Configuring cliff.toml
 - 2024-01-02 configuring git-cliff
 
-0.1.1
+## 0.1.1
 - 2024-01-02 chore: Release agh-exporter-rs version 0.1.1
 - 2024-01-02 Cleaning up unnecessary makefile target
 - 2024-01-02 Preparing for automated releases

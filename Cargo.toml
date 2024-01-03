@@ -2,7 +2,7 @@
 name = "agh-exporter-rs"
 authors = ["Manuel Olguín Muñoz <manuel@olguinmunoz.xyz>"]
 license = "Apache-2.0"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "A small HTTP server exporting AdGuard Home metrics for consumption in Prometheus."
 readme = "README.md"
