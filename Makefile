@@ -1,9 +1,16 @@
-DOCKER_IMG_NAME ?= "ghcr.io/molguin92/agh-exporter-rs:latest"
+DOCKER_IMG_NAME ?= "ghcr.io/molguin92/agh-exporter-rs"
 
-.PHONY: build-docker
-build-docker: Dockerfile
-	docker build -t $(DOCKER_IMG_NAME) -f $< .
+.PHONY: docker-latest
+docker-latest: Dockerfile
+	docker buildx build --platform linux/amd64,linux/arm64 -t $(DOCKER_IMG_NAME):latest -f $< --push .
 
-.PHONY: push-docker
-push-docker: build-docker
-	docker push $(DOCKER_IMG_NAME)
+.PHONY: docker-version
+docker-version-%: Dockerfile
+	docker buildx build --platform linux/amd64,linux/arm64 -t $(DOCKER_IMG_NAME):$* -t $(DOCKER_IMG_NAME):latest -f $< --push .
+
+
+.PHONY: release-bump-%
+release-bump-%:
+	cargo release $* --execute --no-confirm --no-push --no-publish
+	TAG := $(shell git tag --points-at HEAD)
+	$(MAKE) docker-version-$(TAG)
