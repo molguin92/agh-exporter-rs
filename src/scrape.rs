@@ -1,4 +1,5 @@
 use reqwest::{Client, StatusCode, Url};
+use serde::de::DeserializeOwned;
 use serde::{Serialize, Serializer};
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -42,7 +43,7 @@ impl Serialize for NestedUpstreamFloat {
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
-pub struct AghApiStatistics {
+struct Stats {
     num_dns_queries: u64,
     num_blocked_filtering: u64,
     num_replaced_safebrowsing: u64,
@@ -56,16 +57,34 @@ pub struct AghApiStatistics {
     top_blocked_domains: Vec<HashMap<String, NestedDomainCount>>,
 }
 
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+struct Status {
+    protection_enabled: bool,
+    dhcp_available: bool,
+    running: bool,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+pub struct Metrics {
+    #[serde(flatten)]
+    status: Status,
+    #[serde(flatten)]
+    stats: Stats,
+}
+
 pub fn start_scrape_loop(
     agh_base_url: Url,
     user: Option<String>,
     pwd: Option<String>,
     scrape_interval: Duration,
-) -> Result<Receiver<AghApiStatistics>, String> {
-    let client = Client::new();
-    let agh_stats_url = agh_base_url.join("stats").map_err(|e| e.to_string())?;
+) -> Result<Receiver<Metrics>, String> {
+    let agh_api_client = AghApiClient {
+        client: Client::new(),
+        user,
+        pwd,
+        api_url: agh_base_url,
+    };
     let mut interval = tokio::time::interval(scrape_interval);
-
     let (tx, rx) = channel(Default::default());
 
     tokio::spawn(async move {
@@ -74,7 +93,7 @@ pub fn start_scrape_loop(
             scrape_interval.as_secs()
         );
         loop {
-            match scrape_agh_stats(&client, &agh_stats_url, &user, &pwd).await {
+            match agh_api_client.get_all().await {
                 Ok(stats) => tx.send(stats).unwrap(),
                 Err(s) => {
                     log::error!("Failed to fetch stats from AGH API: {s}");
@@ -89,33 +108,49 @@ pub fn start_scrape_loop(
     Ok(rx)
 }
 
-async fn scrape_agh_stats(
-    client: &Client,
-    agh_stats_url: &Url,
-    user: &Option<String>,
-    pwd: &Option<String>,
-) -> Result<AghApiStatistics, String> {
-    let mut req_builder = client.get(agh_stats_url.clone());
-    if let Some(username) = user {
-        req_builder = req_builder.basic_auth(username, pwd.clone())
+struct AghApiClient {
+    client: Client,
+    user: Option<String>,
+    pwd: Option<String>,
+    api_url: Url,
+}
+
+impl AghApiClient {
+    async fn get<R>(&self, sub_url: impl AsRef<str>) -> Result<R, String>
+    where
+        R: DeserializeOwned,
+    {
+        let url = self
+            .api_url
+            .join(sub_url.as_ref())
+            .map_err(|e| e.to_string())?;
+        let mut req_builder = self.client.get(url.clone());
+        if let Some(ref username) = self.user {
+            req_builder = req_builder.basic_auth(username.clone(), self.pwd.clone());
+        }
+
+        log::info!("Querying {url}...");
+        match req_builder.send().await {
+            Ok(resp) => match resp.status() {
+                StatusCode::OK => Ok(resp
+                    .json()
+                    .await
+                    .map_err(|e| format!("Could not parse response body: {e}"))?),
+                _ => Err(format!(
+                    "Received non-200 status code when querying {url}: {} {}\n",
+                    resp.status().as_u16(),
+                    resp.status().canonical_reason().unwrap_or("")
+                )),
+            },
+            Err(e) => Err(format!("Could not query {url}: {e}")),
+        }
     }
 
-    log::info!("Querying AGH API at {agh_stats_url}.");
-    match req_builder.send().await {
-        Ok(resp) => match resp.status() {
-            StatusCode::OK => {
-                let body = resp.bytes().await.unwrap();
-                let body_len = body.len();
-                log::info!("Got {body_len} bytes from AGH API.");
-
-                Ok(serde_json::from_slice(body.iter().as_slice()).unwrap())
-            }
-            _ => Err(format!(
-                "Received non-200 status code when scraping AGH: {} {}\n",
-                resp.status().as_u16(),
-                resp.status().canonical_reason().unwrap_or("")
-            )),
-        },
-        Err(e) => Err(format!("Could not fetch AGH statistics: {}", e)),
+    async fn get_all(&self) -> Result<Metrics, String> {
+        // TODO: parallel calls?
+        Ok(Metrics {
+            stats: self.get("stats").await?,
+            status: self.get("status").await?,
+        })
     }
 }

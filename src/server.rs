@@ -1,4 +1,4 @@
-use crate::scrape::AghApiStatistics;
+use crate::scrape::Metrics;
 use axum::extract::{ConnectInfo, Request, State};
 use axum::http::StatusCode;
 use axum::middleware::Next;
@@ -37,7 +37,7 @@ async fn request_logger(
 
 pub async fn serve<A>(
     listen: A,
-    stats_rx: Receiver<AghApiStatistics>,
+    stats_rx: Receiver<Metrics>,
     metrics_path: Option<String>,
 ) -> io::Result<()>
 where
@@ -61,7 +61,7 @@ where
 }
 
 async fn serve_metrics(
-    State(rx): State<Receiver<AghApiStatistics>>,
+    State(rx): State<Receiver<Metrics>>,
 ) -> Result<(StatusCode, impl IntoResponse), (StatusCode, impl IntoResponse)> {
     let latest_stats = rx.borrow().clone();
     match serde_prometheus::to_string(&latest_stats, None, HashMap::new()) {
