@@ -1,6 +1,13 @@
 # Changelog
 
+## 0.1.3
+- 2024-01-17 Retry after failed scrapes
+- 2024-01-07 refactoring and adding some stats
+- 2024-01-03 remove obsolete badges from README
+- 2024-01-03 Build and publish docker
+
 ## 0.1.2
+- 2024-01-03 chore: Release agh-exporter-rs version 0.1.2
 - 2024-01-03 Makefile targets to build and publish
 - 2024-01-03 Builds
 - 2024-01-03 trying to fix docker push actions

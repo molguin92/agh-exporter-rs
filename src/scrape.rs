@@ -3,7 +3,6 @@ use serde::de::DeserializeOwned;
 use serde::{Serialize, Serializer};
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
-use tokio::sync::watch::error::SendError;
 use tokio::sync::watch::{channel, Receiver};
 use tokio::time::Duration;
 
@@ -92,7 +91,7 @@ pub fn start_scrape_loop(
         loop {
             match agh_api_client.get_all().await {
                 Ok(stats) => {
-                    if let Err(e) = tx.send(stats) {
+                    if tx.send(stats).is_err() {
                         // this should never happen
                         unreachable!()
                     }
