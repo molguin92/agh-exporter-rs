@@ -1,6 +1,7 @@
 # Changelog
 
-## 0.1.3
+## 0.1.4
+- 2024-01-17 Retry after failed scrapes
 - 2024-01-17 Retry after failed scrapes
 - 2024-01-07 refactoring and adding some stats
 - 2024-01-03 remove obsolete badges from README
