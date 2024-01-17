@@ -3,6 +3,7 @@ use serde::de::DeserializeOwned;
 use serde::{Serialize, Serializer};
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
+use tokio::sync::watch::error::SendError;
 use tokio::sync::watch::{channel, Receiver};
 use tokio::time::Duration;
 
@@ -78,26 +79,28 @@ pub fn start_scrape_loop(
     pwd: Option<String>,
     scrape_interval: Duration,
 ) -> Result<Receiver<Metrics>, String> {
-    let agh_api_client = AghApiClient {
-        client: Client::new(),
-        user,
-        pwd,
-        api_url: agh_base_url,
-    };
-    let mut interval = tokio::time::interval(scrape_interval);
     let (tx, rx) = channel(Default::default());
 
     tokio::spawn(async move {
+        let mut interval = tokio::time::interval(scrape_interval);
+        let mut agh_api_client = AghApiClient::new(user, pwd, agh_base_url);
+
         log::info!(
             "Scraping AGH API every {} seconds",
             scrape_interval.as_secs()
         );
         loop {
             match agh_api_client.get_all().await {
-                Ok(stats) => tx.send(stats).unwrap(),
+                Ok(stats) => {
+                    if let Err(e) = tx.send(stats) {
+                        // this should never happen
+                        unreachable!()
+                    }
+                }
                 Err(s) => {
                     log::error!("Failed to fetch stats from AGH API: {s}");
-                    return;
+                    // recreate the client just in case, to clear any existing connections and prevent further errors
+                    agh_api_client.reset()
                 }
             }
 
@@ -116,6 +119,20 @@ struct AghApiClient {
 }
 
 impl AghApiClient {
+    fn new(user: Option<String>, pwd: Option<String>, api_url: Url) -> Self {
+        Self {
+            client: Client::new(),
+            user,
+            pwd,
+            api_url,
+        }
+    }
+
+    /// Resets the inner client to clear any long-lasting connections
+    fn reset(&mut self) {
+        self.client = Client::new();
+    }
+
     async fn get<R>(&self, sub_url: impl AsRef<str>) -> Result<R, String>
     where
         R: DeserializeOwned,
